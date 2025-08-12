@@ -1,0 +1,342 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 201 96% 32%;
+    --primary-foreground: 210 40% 98%;
+    --primary-dark: 201 96% 22%;
+    --secondary: 201 96% 95%;
+    --secondary-foreground: 201 96% 32%;
+    --muted: 201 96% 95%;
+    --muted-foreground: 201 96% 40%;
+    --accent: 201 96% 90%;
+    --accent-foreground: 201 96% 32%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 201 96% 90%;
+    --input: 201 96% 90%;
+    --ring: 201 96% 32%;
+    --radius: 0.75rem;
+    --success: 142.1 76.2% 36.3%;
+    --warning: 38 92% 50%;
+    --error: 0 84.2% 60.2%;
+    --surface: 0 0% 100%;
+    --background-light: 201 96% 98%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 201 96% 32%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 201 96% 95%;
+    --sidebar-accent-foreground: 201 96% 32%;
+    --sidebar-border: 201 96% 90%;
+    --sidebar-ring: 201 96% 32%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 201 96% 60%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --primary-dark: 201 96% 50%;
+    --secondary: 201 96% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 201 96% 20%;
+    --muted-foreground: 201 96% 70%;
+    --accent: 201 96% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 201 96% 20%;
+    --input: 201 96% 20%;
+    --ring: 201 96% 60%;
+    --success: 142.1 70.6% 45.3%;
+    --warning: 38 92% 50%;
+    --error: 0 62.8% 30.6%;
+    --surface: 222.2 84% 4.9%;
+    --background-light: 222.2 84% 6.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 201 96% 60%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 201 96% 20%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 201 96% 20%;
+    --sidebar-ring: 201 96% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Modern scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+@layer components {
+  /* Modern gradient backgrounds */
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .gradient-bg-gentle {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  }
+  
+  .gradient-bg-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  }
+  
+  .gradient-bg-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  }
+  
+  /* Modern card styles */
+  .modern-card {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-100;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .modern-card:hover {
+    @apply shadow-xl transform -translate-y-1;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Modern button styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold px-6 py-3 rounded-xl;
+    @apply hover:from-blue-700 hover:to-blue-800 transition-all duration-300;
+    @apply shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+    @apply focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl border-2 border-gray-200;
+    @apply hover:bg-gray-50 hover:border-gray-300 transition-all duration-300;
+    @apply shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+    @apply focus:outline-none focus:ring-4 focus:ring-gray-300 focus:ring-opacity-50;
+  }
+  
+  /* Modern input styles */
+  .modern-input {
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900;
+    @apply placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50;
+    @apply focus:border-blue-500 transition-all duration-300;
+    @apply shadow-sm hover:shadow-md;
+  }
+  
+  /* Modern glass effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  /* Modern animations */
+  .fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  .scale-in {
+    animation: scaleIn 0.4s ease-out;
+  }
+  
+  /* Modern text styles */
+  .text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Custom animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Modern spacing utilities */
+  .section-padding {
+    @apply py-8 md:py-16 lg:py-24;
+  }
+  
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Modern grid layouts */
+  .modern-grid {
+    @apply grid gap-4 md:gap-6 lg:gap-8;
+  }
+  
+  .modern-grid-cols {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    /* Hide scrollbar on mobile for cleaner look */
+    ::-webkit-scrollbar {
+      width: 0;
+    }
+    
+    /* Better touch targets */
+    button, a, input, select, textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Prevent zoom on input focus */
+    input, select, textarea {
+      font-size: 16px;
+    }
+    
+    /* Mobile-optimized cards */
+    .modern-card {
+      @apply rounded-xl shadow-md;
+    }
+    
+    /* Mobile-optimized buttons */
+    .btn-primary, .btn-secondary {
+      @apply px-4 py-3 text-base;
+      min-height: 48px;
+    }
+    
+    /* Mobile-optimized inputs */
+    .modern-input {
+      @apply px-3 py-3 text-base;
+      min-height: 48px;
+    }
+    
+    /* Mobile grid adjustments */
+    .modern-grid-cols {
+      @apply grid-cols-1;
+    }
+    
+    /* Mobile spacing */
+    .section-padding {
+      @apply py-6;
+    }
+    
+    .container-padding {
+      @apply px-3;
+    }
+  }
+  
+  /* Touch-friendly interactions */
+  @media (hover: none) and (pointer: coarse) {
+    .modern-card:hover {
+      transform: none;
+    }
+    
+    .btn-primary:hover, .btn-secondary:hover {
+      transform: none;
+    }
+  }
+} 
