@@ -31,7 +31,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, className }) => {
           <img
             src={coverImage}
             alt={book.title}
-            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+            className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = 'https://via.placeholder.com/128x192?text=No+Image';
