@@ -89,7 +89,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border/20;
   }
   
   html {

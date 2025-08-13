@@ -325,6 +325,7 @@ export default function BookDetails() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Reviews Section */}
       <div className="mt-16">
