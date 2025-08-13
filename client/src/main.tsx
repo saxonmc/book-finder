@@ -4,6 +4,8 @@ import App from './App'
 import './index.css'
 
 // Register service worker for PWA
+// Temporarily disabled to debug blank screen issue
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -15,8 +17,16 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
+
+console.log('Starting React app...');
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
