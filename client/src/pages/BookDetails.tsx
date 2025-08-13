@@ -39,8 +39,9 @@ export default function BookDetails() {
   const voteMutation = useVoteOnReview()
   const removeVoteMutation = useRemoveVote()
 
-  const isLoggedIn = !!localStorage.getItem('token')
-  const currentUserId = isLoggedIn ? JSON.parse(localStorage.getItem('user') || '{}').id : undefined
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null')
+  const currentUserId = currentUser?.id
 
   useEffect(() => {
     if (id) {
@@ -50,19 +51,19 @@ export default function BookDetails() {
 
   const checkLibraryStatus = async (bookId: string) => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) return
 
-      const response = await fetch(`/api/user-library/status/${bookId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setIsInLibrary(data.inLibrary)
-        setLibraryStatus(data.status || '')
+      // Check library status from localStorage
+      const storedBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
+      const bookInLibrary = storedBooks.find((book: any) => book.bookId === bookId)
+      
+      if (bookInLibrary) {
+        setIsInLibrary(true)
+        setLibraryStatus(bookInLibrary.status || '')
+      } else {
+        setIsInLibrary(false)
+        setLibraryStatus('')
       }
     } catch (error) {
       console.error('Error checking library status:', error)
@@ -74,34 +75,30 @@ export default function BookDetails() {
 
     try {
       setIsAddingToLibrary(true)
-      const token = localStorage.getItem('token')
-      if (!token) {
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) {
         alert('Please log in to add books to your library')
         return
       }
 
-      const response = await fetch('/api/user-library/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          bookId: id,
-          title: data.book.title,
-          author: data.book.author,
-          coverImage: data.book.coverImage,
-          isbn: data.book.isbn,
-          status: 'want_to_read'
-        })
-      })
-
-      if (response.ok) {
-        setIsInLibrary(true)
-        setLibraryStatus('want_to_read')
-      } else {
-        alert('Error adding book to library')
+      // Add book to localStorage
+      const storedBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
+      const newBook = {
+        id: Date.now() + Math.random(), // Generate unique ID
+        bookId: id,
+        title: data.book.title,
+        author: data.book.author,
+        coverImage: data.book.coverImage,
+        isbn: data.book.isbn,
+        status: 'want_to_read',
+        addedAt: new Date().toISOString()
       }
+      
+      const updatedBooks = [...storedBooks, newBook]
+      localStorage.setItem('userLibrary', JSON.stringify(updatedBooks))
+      
+      setIsInLibrary(true)
+      setLibraryStatus('want_to_read')
     } catch (error) {
       console.error('Error adding to library:', error)
       alert('Error adding book to library')

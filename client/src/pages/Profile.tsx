@@ -13,7 +13,7 @@ interface Membership {
 }
 
 interface User {
-  id: number
+  id: string
   name: string
   email: string
 }
@@ -119,26 +119,20 @@ export default function Profile() {
 
   const loadUserData = async () => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        // Redirect to login if no token
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) {
+        // Redirect to login if not logged in
         window.location.href = '/login'
         return
       }
 
-      const response = await fetch('/api/auth/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setUser(data.user)
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null')
+      if (currentUser) {
+        setUser(currentUser)
       } else {
-        // Token invalid, redirect to login
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        // No user data, redirect to login
+        localStorage.removeItem('currentUser')
+        localStorage.removeItem('isLoggedIn')
         window.location.href = '/login'
       }
     } catch (error) {
@@ -148,19 +142,12 @@ export default function Profile() {
 
   const loadMemberships = async () => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) return
 
-      const response = await fetch('/api/memberships/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setMemberships(data.memberships)
-      }
+      // Load memberships from localStorage
+      const storedMemberships = JSON.parse(localStorage.getItem('userMemberships') || '[]')
+      setMemberships(storedMemberships)
     } catch (error) {
       console.error('Error loading memberships:', error)
     } finally {
@@ -175,37 +162,32 @@ export default function Profile() {
     }
 
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) return
 
-      // Add each selected membership
+      // Add each selected membership to localStorage
+      const existingMemberships = JSON.parse(localStorage.getItem('userMemberships') || '[]')
+      const newMemberships = []
+
       for (const serviceId of selectedMemberships) {
         const serviceInfo = getServiceInfo(serviceId)
         const membershipData = {
+          id: Date.now() + Math.random(), // Generate unique ID
           service: serviceId,
           membershipType: serviceInfo?.membershipTypes[0] || 'Standard Membership',
           price: '',
           status: 'active',
           notes: ''
         }
-
-        const response = await fetch('/api/memberships/add', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(membershipData)
-        })
-
-        if (!response.ok) {
-          throw new Error(`Failed to add ${serviceInfo?.name || serviceId}`)
-        }
+        newMemberships.push(membershipData)
       }
+
+      const updatedMemberships = [...existingMemberships, ...newMemberships]
+      localStorage.setItem('userMemberships', JSON.stringify(updatedMemberships))
+      setMemberships(updatedMemberships)
 
       setShowMembershipDropdown(false)
       setSelectedMemberships([])
-      loadMemberships()
     } catch (error) {
       console.error('Error adding memberships:', error)
       alert('Error adding memberships. Please try again.')
@@ -216,19 +198,13 @@ export default function Profile() {
     if (!confirm('Are you sure you want to delete this membership?')) return
 
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) return
 
-      const response = await fetch(`/api/memberships/remove/${membershipId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        loadMemberships()
-      }
+      const existingMemberships = JSON.parse(localStorage.getItem('userMemberships') || '[]')
+      const updatedMemberships = existingMemberships.filter((m: Membership) => m.id !== membershipId)
+      localStorage.setItem('userMemberships', JSON.stringify(updatedMemberships))
+      setMemberships(updatedMemberships)
     } catch (error) {
       console.error('Error deleting membership:', error)
     }

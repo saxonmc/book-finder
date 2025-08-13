@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Bookmark, Eye, CheckCircle, Clock, Trash2, Loader2, Filter } from 'lucide-react'
+import { BookOpen, Bookmark, Eye, CheckCircle, Clock, Trash2, Loader2, Filter, X } from 'lucide-react'
 
 interface UserBook {
   id: number
-  bookId: number
+  bookId: string
   title: string
   author: string
-  coverImage?: string
-  isbn?: string
+  coverImage: string
   status: string
-  addedAt: number
+  addedAt: string
 }
 
 export default function Library() {
   const [books, setBooks] = useState<UserBook[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     loadUserLibrary()
@@ -24,26 +24,15 @@ export default function Library() {
 
   const loadUserLibrary = async () => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) {
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) {
         window.location.href = '/login'
         return
       }
 
-      const response = await fetch('/api/user-library/library', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setBooks(data.books)
-      } else if (response.status === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        window.location.href = '/login'
-      }
+      // Load books from localStorage
+      const storedBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
+      setBooks(storedBooks)
     } catch (error) {
       console.error('Error loading library:', error)
     } finally {
@@ -53,27 +42,17 @@ export default function Library() {
 
   const handleStatusChange = async (userBookId: number, newStatus: string) => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) return
 
-      // Find the book to get the Google Books ID
-      const book = books.find(b => b.id === userBookId)
-      if (!book) return
-
-      const response = await fetch(`/api/user-library/update/${book.bookId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
-
-      if (response.ok) {
-        setBooks(books.map(b => 
-          b.id === userBookId ? { ...b, status: newStatus } : b
-        ))
-      }
+      // Update book status in localStorage
+      const existingBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
+      const updatedBooks = existingBooks.map((book: UserBook) => 
+        book.id === userBookId ? { ...book, status: newStatus } : book
+      )
+      
+      localStorage.setItem('userLibrary', JSON.stringify(updatedBooks))
+      setBooks(updatedBooks)
     } catch (error) {
       console.error('Error updating book status:', error)
     }
@@ -83,23 +62,15 @@ export default function Library() {
     if (!confirm('Are you sure you want to remove this book from your library?')) return
 
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      if (!isLoggedIn) return
 
-      // Find the book to get the Google Books ID
-      const book = books.find(b => b.id === userBookId)
-      if (!book) return
-
-      const response = await fetch(`/api/user-library/remove/${book.bookId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        setBooks(books.filter(b => b.id !== userBookId))
-      }
+      // Remove book from localStorage
+      const existingBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
+      const updatedBooks = existingBooks.filter((book: UserBook) => book.id !== userBookId)
+      
+      localStorage.setItem('userLibrary', JSON.stringify(updatedBooks))
+      setBooks(updatedBooks)
     } catch (error) {
       console.error('Error removing book:', error)
     }
