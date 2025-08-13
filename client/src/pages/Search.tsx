@@ -34,8 +34,21 @@ export default function Search() {
   
   const { data, isLoading, error } = useSearchBooks(searchTerm, filters, searchTerm.length > 0)
 
+  // Debug logging
+  console.log('Search debug:', { 
+    searchTerm, 
+    query, 
+    filters, 
+    data, 
+    isLoading, 
+    error,
+    hasData: !!data,
+    bookCount: data?.books?.length || 0
+  })
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Search submitted:', query)
     setSearchTerm(query)
     setSearchParams({ q: query })
   }
