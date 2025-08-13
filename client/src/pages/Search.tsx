@@ -1,157 +1,170 @@
-import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Search as SearchIcon, Loader2 } from 'lucide-react'
-import { useSearchBooks } from '../hooks/useBooks'
-import BookCard from '../components/BookCard'
-import SearchSuggestions from '../components/SearchSuggestions'
-import SearchFilters from '../components/SearchFilters'
+import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Search as SearchIcon, Filter, X } from 'lucide-react';
+import { useSearchBooks, SearchFilters as SearchFiltersType } from '@/hooks/useBooks';
+import { BookCard } from '@/components/BookCard';
+import SearchSuggestions from '@/components/SearchSuggestions';
+import SearchFilters from '@/components/SearchFilters';
 
 export default function Search() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [query, setQuery] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState({ 
-    maxResults: 20, 
-    orderBy: 'relevance',
-    genre: undefined,
-    yearFrom: undefined,
-    yearTo: undefined,
-    pageCountMin: undefined,
-    pageCountMax: undefined,
-    language: undefined,
-    rating: undefined,
-    printType: 'all'
-  })
-  
-  // Initialize from URL params
-  useEffect(() => {
-    const urlQuery = searchParams.get('q')
-    if (urlQuery) {
-      setQuery(urlQuery)
-      setSearchTerm(urlQuery)
-    }
-  }, [searchParams])
-  
-  const { data, isLoading, error } = useSearchBooks(searchTerm, filters, searchTerm.length > 0)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Debug logging
-  console.log('Search debug:', { 
-    searchTerm, 
-    query, 
-    filters, 
-    data, 
-    isLoading, 
-    error,
-    hasData: !!data,
-    bookCount: data?.books?.length || 0
-  })
+  // Parse filters from URL params
+  const filters: SearchFiltersType = {
+    genre: searchParams.get('genre') || undefined,
+    publicationYearStart: searchParams.get('yearFrom') ? parseInt(searchParams.get('yearFrom')!) : undefined,
+    publicationYearEnd: searchParams.get('yearTo') ? parseInt(searchParams.get('yearTo')!) : undefined,
+    pageCountMin: searchParams.get('pagesMin') ? parseInt(searchParams.get('pagesMin')!) : undefined,
+    pageCountMax: searchParams.get('pagesMax') ? parseInt(searchParams.get('pagesMax')!) : undefined,
+    language: searchParams.get('language') || undefined,
+    rating: searchParams.get('rating') ? parseFloat(searchParams.get('rating')!) : undefined,
+    printType: searchParams.get('printType') || undefined
+  };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Search submitted:', query)
-    setSearchTerm(query)
-    setSearchParams({ q: query })
-  }
+  const { data, isLoading, error } = useSearchBooks(query, filters);
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion)
-    setSearchTerm(suggestion)
-    setSearchParams({ q: suggestion })
-  }
+  const handleSearch = (searchQuery: string) => {
+    setQuery(searchQuery);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('q', searchQuery);
+    setSearchParams(newParams);
+  };
 
   const handleFilterChange = (newFilters: any) => {
-    setFilters(newFilters)
-  }
+    const newParams = new URLSearchParams(searchParams);
+    
+    // Update URL params based on filters
+    if (newFilters.genre) newParams.set('genre', newFilters.genre);
+    else newParams.delete('genre');
+    
+    if (newFilters.publicationYearStart) newParams.set('yearFrom', newFilters.publicationYearStart.toString());
+    else newParams.delete('yearFrom');
+    
+    if (newFilters.publicationYearEnd) newParams.set('yearTo', newFilters.publicationYearEnd.toString());
+    else newParams.delete('yearTo');
+    
+    if (newFilters.pageCountMin) newParams.set('pagesMin', newFilters.pageCountMin.toString());
+    else newParams.delete('pagesMin');
+    
+    if (newFilters.pageCountMax) newParams.set('pagesMax', newFilters.pageCountMax.toString());
+    else newParams.delete('pagesMax');
+    
+    if (newFilters.language) newParams.set('language', newFilters.language);
+    else newParams.delete('language');
+    
+    if (newFilters.rating) newParams.set('rating', newFilters.rating.toString());
+    else newParams.delete('rating');
+    
+    if (newFilters.printType) newParams.set('printType', newFilters.printType);
+    else newParams.delete('printType');
+    
+    setSearchParams(newParams);
+  };
 
   const handleClearFilters = () => {
-    setFilters({ 
-      maxResults: 20, 
-      orderBy: 'relevance',
-      genre: undefined,
-      yearFrom: undefined,
-      yearTo: undefined,
-      pageCountMin: undefined,
-      pageCountMax: undefined,
-      language: undefined,
-      rating: undefined,
-      printType: 'all'
-    })
-  }
+    setSearchParams({ q: query });
+  };
+
+  const books = data?.items || [];
+  const totalResults = data?.totalItems || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gentle-50 to-white">
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-gray-900">Search Books</h1>
-        
-        <form onSubmit={handleSearch} className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row gap-3 max-w-2xl">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for books, authors, or genres..."
-                className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border-2 border-gentle-200 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gentle-500 focus:border-gentle-500 shadow-sm text-base"
-              />
-            </div>
+    <div className="min-h-screen gradient-bg-gentle">
+      <div className="container mx-auto px-4 py-8">
+        {/* Search Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Find Your Next Book</h1>
+          
+          {/* Search Bar */}
+          <div className="relative max-w-2xl mx-auto mb-6">
+            <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search for books, authors, or genres..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch(query)}
+              className="w-full pl-12 pr-4 py-3 text-gray-900 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-gentle-500 focus:border-transparent transition-all duration-200 placeholder-gray-500"
+            />
             <button
-              type="submit"
-              disabled={!query.trim()}
-              className="px-6 sm:px-8 py-3 sm:py-4 bg-gentle-600 text-white rounded-xl hover:bg-gentle-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl text-base font-medium"
+              onClick={() => handleSearch(query)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gentle-600 text-white px-4 py-2 rounded-lg hover:bg-gentle-700 transition-colors"
             >
               Search
             </button>
           </div>
-        </form>
 
-
-
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gentle-600" />
-          <span className="ml-2 text-gray-600">Searching for books...</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="text-center py-12">
-          <p className="text-red-600">Error searching for books. Please try again.</p>
-        </div>
-      )}
-
-      {data && data.books.length === 0 && searchTerm && (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No books found for "{searchTerm}"</p>
-        </div>
-      )}
-
-      {data && data.books.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-600">
-              Found {data.total} book{data.total !== 1 ? 's' : ''} for "{searchTerm}"
-            </p>
-            <SearchFilters filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} />
+          {/* Filter Toggle */}
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg hover:bg-white transition-colors"
+            >
+              <Filter className="w-4 h-4" />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {data.books.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-        </div>
-      )}
 
-      {!searchTerm && (
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Enter a search term to find books</p>
-          </div>
-          <SearchSuggestions onSuggestionClick={handleSuggestionClick} />
+          {/* Filters */}
+          {showFilters && (
+            <SearchFilters
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={handleClearFilters}
+            />
+          )}
         </div>
-      )}
+
+        {/* Search Results */}
+        {query && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Search Results for "{query}"
+              </h2>
+              {totalResults > 0 && (
+                <p className="text-gray-600">
+                  {totalResults.toLocaleString()} results found
+                </p>
+              )}
+            </div>
+
+            {isLoading && (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gentle-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Searching for books...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="text-center py-12">
+                <p className="text-red-600 mb-2">Error searching for books</p>
+                <p className="text-gray-600">Please try again later</p>
+              </div>
+            )}
+
+            {!isLoading && !error && books.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-600 mb-2">No books found for "{query}"</p>
+                <p className="text-gray-500">Try adjusting your search terms or filters</p>
+              </div>
+            )}
+
+            {!isLoading && !error && books.length > 0 && (
+              <div className="modern-grid">
+                {books.map((book) => (
+                  <BookCard key={book.id} book={book} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Search Suggestions */}
+        {!query && <SearchSuggestions onSuggestionClick={handleSearch} />}
       </div>
     </div>
-  )
+  );
 } 

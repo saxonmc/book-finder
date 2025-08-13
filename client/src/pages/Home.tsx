@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Search, BookOpen, Star, Sparkles, TrendingUp } from 'lucide-react'
-import BookRecommendations from '../components/BookRecommendations'
+import { BookRecommendations } from '@/components/BookRecommendations';
 
 export default function Home() {
   return (

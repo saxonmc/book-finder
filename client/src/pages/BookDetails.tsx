@@ -1,417 +1,351 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Star, Calendar, BookOpen, User, Tag, Bookmark, Check, MessageSquare } from 'lucide-react'
-import { useBook } from '../hooks/useBooks'
-import { Loader2 } from 'lucide-react'
-import BookAvailability from '../components/BookAvailability'
-import ReviewForm from '../components/ReviewForm'
-import ReviewCard from '../components/ReviewCard'
-import ReviewStats from '../components/ReviewStats'
-import { 
-  useBookReviews, 
-  useBookRatingStats, 
-  useUserReview, 
-  useCreateReview, 
-  useUpdateReview, 
-  useDeleteReview, 
-  useVoteOnReview, 
-  useRemoveVote 
-} from '../hooks/useReviews'
+import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Star, Calendar, BookOpen, User, Plus, Check } from 'lucide-react';
+import { useBook } from '@/hooks/useBooks';
+import BookAvailability from '@/components/BookAvailability';
+import ReviewForm from '@/components/ReviewForm';
+import ReviewCard from '@/components/ReviewCard';
+import ReviewStats from '@/components/ReviewStats';
 
 export default function BookDetails() {
-  const { id } = useParams<{ id: string }>()
-  const { data, isLoading, error } = useBook(id || '', !!id)
-  const [isInLibrary, setIsInLibrary] = useState(false)
-  const [isAddingToLibrary, setIsAddingToLibrary] = useState(false)
-  const [libraryStatus, setLibraryStatus] = useState<string>('')
-  const [showReviewForm, setShowReviewForm] = useState(false)
-  const [editingReview, setEditingReview] = useState<any>(null)
+  const { id } = useParams<{ id: string }>();
+  const { data: book, isLoading, error } = useBook(id || '');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState<any>(null);
 
-  // Review hooks
-  const { data: reviewsData, isLoading: reviewsLoading } = useBookReviews(id || '', 10, 0)
-  const { data: ratingStats, isLoading: statsLoading } = useBookRatingStats(id || '')
-  const { data: userReviewData } = useUserReview(id || '')
-  
-  // Review mutations
-  const createReviewMutation = useCreateReview()
-  const updateReviewMutation = useUpdateReview()
-  const deleteReviewMutation = useDeleteReview()
-  const voteMutation = useVoteOnReview()
-  const removeVoteMutation = useRemoveVote()
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const currentUserId = currentUser?.id;
 
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null')
-  const currentUserId = currentUser?.id
-
-  useEffect(() => {
-    if (id) {
-      checkLibraryStatus(id)
-    }
-  }, [id])
-
-  const checkLibraryStatus = async (bookId: string) => {
+  // Mock library status check
+  const checkLibraryStatus = () => {
+    const userLibrary = localStorage.getItem('userLibrary');
+    if (!userLibrary) return false;
     try {
-      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-      if (!isLoggedIn) return
-
-      // Check library status from localStorage
-      const storedBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
-      const bookInLibrary = storedBooks.find((book: any) => book.bookId === bookId)
-      
-      if (bookInLibrary) {
-        setIsInLibrary(true)
-        setLibraryStatus(bookInLibrary.status || '')
-      } else {
-        setIsInLibrary(false)
-        setLibraryStatus('')
-      }
-    } catch (error) {
-      console.error('Error checking library status:', error)
+      const library = JSON.parse(userLibrary);
+      return library.some((libBook: any) => libBook.bookId === id);
+    } catch {
+      return false;
     }
-  }
+  };
+
+  const [inLibrary, setInLibrary] = useState(checkLibraryStatus());
 
   const handleAddToLibrary = async () => {
-    if (!id || !data?.book) return
+    if (!book) return;
 
     try {
-      setIsAddingToLibrary(true)
-      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-      if (!isLoggedIn) {
-        alert('Please log in to add books to your library')
-        return
-      }
-
-      // Add book to localStorage
-      const storedBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
-      const newBook = {
-        id: Date.now() + Math.random(), // Generate unique ID
-        bookId: id,
-        title: data.book.title,
-        author: data.book.author,
-        coverImage: data.book.coverImage,
-        isbn: data.book.isbn,
-        status: 'want_to_read',
+      // Mock API call - in real app this would be a backend call
+      const userLibrary = localStorage.getItem('userLibrary') || '[]';
+      const library = JSON.parse(userLibrary);
+      
+      const bookToAdd = {
+        bookId: book.id,
+        title: book.title,
+        author: book.authors?.join(', ') || 'Unknown Author',
+        coverImage: book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail || '',
+        isbn: book.industryIdentifiers?.[0]?.identifier || '',
+        status: 'want-to-read',
         addedAt: new Date().toISOString()
-      }
-      
-      const updatedBooks = [...storedBooks, newBook]
-      localStorage.setItem('userLibrary', JSON.stringify(updatedBooks))
-      
-      setIsInLibrary(true)
-      setLibraryStatus('want_to_read')
+      };
+
+      library.push(bookToAdd);
+      localStorage.setItem('userLibrary', JSON.stringify(library));
+      setInLibrary(true);
     } catch (error) {
-      console.error('Error adding to library:', error)
-      alert('Error adding book to library')
-    } finally {
-      setIsAddingToLibrary(false)
+      console.error('Error adding book to library:', error);
     }
-  }
+  };
 
-  // Review handling functions
-  const handleSubmitReview = async (rating: number, review: string) => {
-    if (!id) return
+  const handleReviewSubmit = (reviewData: any) => {
+    // Mock review submission
+    console.log('Review submitted:', reviewData);
+    setShowReviewForm(false);
+    setEditingReview(null);
+  };
 
-    if (editingReview) {
-      await updateReviewMutation.mutateAsync({
-        reviewId: editingReview.id,
-        rating,
-        review
-      })
-      setEditingReview(null)
-    } else {
-      await createReviewMutation.mutateAsync({
-        bookId: id,
-        rating,
-        review
-      })
-    }
-    setShowReviewForm(false)
-  }
+  const handleReviewEdit = (review: any) => {
+    setEditingReview(review);
+    setShowReviewForm(true);
+  };
 
-  const handleEditReview = (review: any) => {
-    setEditingReview(review)
-    setShowReviewForm(true)
-  }
+  const handleReviewDelete = (reviewId: string) => {
+    // Mock review deletion
+    console.log('Review deleted:', reviewId);
+  };
 
-  const handleDeleteReview = async (reviewId: number) => {
-    await deleteReviewMutation.mutateAsync(reviewId)
-  }
-
-  const handleVoteOnReview = async (reviewId: number, isHelpful: boolean) => {
-    await voteMutation.mutateAsync({ reviewId, isHelpful })
-  }
-
-  const handleRemoveVote = async (reviewId: number) => {
-    await removeVoteMutation.mutateAsync(reviewId)
-  }
+  const handleReviewVote = (reviewId: string, isHelpful: boolean) => {
+    // Mock review voting
+    console.log('Review voted:', reviewId, isHelpful);
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gentle-50 to-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-gentle-600" />
-            <span className="ml-2 text-gray-600">Loading book details...</span>
-          </div>
+      <div className="min-h-screen gradient-bg-gentle flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gentle-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading book details...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (error || !data) {
+  if (error || !book) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gentle-50 to-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <p className="text-red-600">Error loading book details. Please try again.</p>
-            <Link to="/search" className="text-gentle-600 hover:text-gentle-700 hover:underline mt-4 inline-block">
-              Back to Search
-            </Link>
-          </div>
+      <div className="min-h-screen gradient-bg-gentle flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Error loading book</p>
+          <p className="text-gray-600">Please try again later</p>
+          <Link to="/search" className="text-gentle-600 hover:text-gentle-700 mt-4 inline-block">
+            Back to Search
+          </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const book = data.book
+  const coverImage = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail || 'https://via.placeholder.com/300x450?text=No+Image';
+  const authors = book.authors?.join(', ') || 'Unknown Author';
+  const publishedYear = book.publishedDate ? new Date(book.publishedDate).getFullYear() : 'Unknown';
+  const rating = book.averageRating || 0;
+  const ratingsCount = book.ratingsCount || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gentle-50 to-white">
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+    <div className="min-h-screen gradient-bg-gentle">
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
         <Link 
           to="/search" 
-          className="inline-flex items-center text-gray-600 hover:text-gentle-600 mb-4 sm:mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-gentle-600 hover:text-gentle-700 mb-6 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="w-4 h-4" />
           Back to Search
         </Link>
 
-        {/* Book Availability Section - Prominently Displayed */}
-        <div className="mb-6 sm:mb-8">
-          <BookAvailability 
-            bookId={book.id}
-            title={book.title}
-            author={book.author}
-            isbn={book.isbn}
-          />
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-          {/* Book Cover */}
-          <div className="md:col-span-1">
-            <div className="aspect-[3/4] relative overflow-hidden rounded-xl border border-gentle-200 shadow-lg">
-              {book.coverImage ? (
-                <img
-                  src={book.coverImage}
-                  alt={book.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gentle-100 flex items-center justify-center">
-                  <BookOpen className="h-16 w-16 text-gentle-400" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Book Details */}
-          <div className="md:col-span-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-gray-900">{book.title}</h1>
-            
-            <div className="flex items-center text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
-              <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gentle-500" />
-              <span>{book.author}</span>
-            </div>
-
-          {book.rating && (
-            <div className="flex items-center mb-4">
-              <Star className="h-5 w-5 text-yellow-500 fill-current mr-2" />
-              <span className="text-lg font-semibold text-gray-700">{book.rating.toFixed(1)}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {book.publishedDate && (
-              <div className="flex items-center text-gray-600">
-                <Calendar className="h-4 w-4 mr-2 text-gentle-500" />
-                <span>{new Date(book.publishedDate).getFullYear()}</span>
-              </div>
-            )}
-            
-            {book.pageCount && (
-              <div className="flex items-center text-gray-600">
-                <BookOpen className="h-4 w-4 mr-2 text-gentle-500" />
-                <span>{book.pageCount} pages</span>
-              </div>
-            )}
-            
-            {book.genre && (
-              <div className="flex items-center text-gray-600">
-                <Tag className="h-4 w-4 mr-2 text-gentle-500" />
-                <span>{book.genre}</span>
-              </div>
-            )}
-            
-            {book.isbn && (
-              <div className="flex items-center text-gray-600">
-                <span className="font-mono text-sm">ISBN: {book.isbn}</span>
-              </div>
-            )}
-          </div>
-
-          {book.description && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2 text-gray-900">Description</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {book.description}
-              </p>
-            </div>
-          )}
-
-          <div className="flex gap-4">
-            {isInLibrary ? (
-              <button 
-                disabled
-                className="px-6 py-3 bg-green-600 text-white rounded-lg flex items-center space-x-2 cursor-not-allowed"
-              >
-                <Check className="h-5 w-5" />
-                <span>In Library</span>
-              </button>
-            ) : (
-              <button 
-                onClick={handleAddToLibrary}
-                disabled={isAddingToLibrary}
-                className="px-6 py-3 bg-gentle-600 text-white rounded-lg hover:bg-gentle-700 transition-colors shadow-lg flex items-center space-x-2 disabled:opacity-50"
-              >
-                {isAddingToLibrary ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Bookmark className="h-5 w-5" />
-                )}
-                <span>{isAddingToLibrary ? 'Adding...' : 'Add to Library'}</span>
-              </button>
-            )}
-            
-            {isLoggedIn ? (
-              userReviewData?.review ? (
-                <button 
-                  onClick={() => handleEditReview(userReviewData.review)}
-                  className="px-6 py-3 border border-gentle-300 text-gentle-700 rounded-lg hover:bg-gentle-50 transition-colors flex items-center space-x-2"
-                >
-                  <MessageSquare className="h-5 w-5" />
-                  <span>Edit Review</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setShowReviewForm(true)}
-                  className="px-6 py-3 border border-gentle-300 text-gentle-700 rounded-lg hover:bg-gentle-50 transition-colors flex items-center space-x-2"
-                >
-                  <MessageSquare className="h-5 w-5" />
-                  <span>Write Review</span>
-                </button>
-              )
-            ) : (
-              <Link 
-                to="/login"
-                className="px-6 py-3 border border-gentle-300 text-gentle-700 rounded-lg hover:bg-gentle-50 transition-colors flex items-center space-x-2"
-              >
-                <MessageSquare className="h-5 w-5" />
-                <span>Login to Review</span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-
-      {/* Reviews Section */}
-      <div className="mt-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-            <MessageSquare className="h-8 w-8 text-blue-600" />
-            Reviews & Ratings
-          </h2>
-
-          {/* Review Form */}
-          {showReviewForm && (
-            <div className="mb-8">
-              <ReviewForm
-                bookId={id || ''}
-                onSubmit={handleSubmitReview}
-                onCancel={() => {
-                  setShowReviewForm(false)
-                  setEditingReview(null)
-                }}
-                initialRating={editingReview?.rating || 0}
-                initialReview={editingReview?.review || ''}
-                isEditing={!!editingReview}
-              />
-            </div>
-          )}
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Rating Stats */}
+        {/* Book Details */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
+            {/* Book Cover */}
             <div className="lg:col-span-1">
-              {statsLoading ? (
-                <div className="modern-card p-6">
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                    <span className="ml-2 text-gray-600">Loading stats...</span>
+              <div className="relative">
+                <img
+                  src={coverImage}
+                  alt={book.title}
+                  className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                  }}
+                />
+                {rating > 0 && (
+                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    {rating.toFixed(1)}
                   </div>
-                </div>
-              ) : ratingStats ? (
-                <ReviewStats stats={ratingStats} />
-              ) : null}
-            </div>
+                )}
+              </div>
 
-            {/* Reviews List */}
-            <div className="lg:col-span-2">
-              {reviewsLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="modern-card p-6">
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                        <span className="ml-2 text-gray-600">Loading reviews...</span>
-                      </div>
+              {/* Add to Library Button */}
+              {isLoggedIn && (
+                <div className="mt-6 text-center">
+                  {inLibrary ? (
+                    <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg">
+                      <Check className="w-4 h-4" />
+                      <span>In Your Library</span>
                     </div>
-                  ))}
-                </div>
-              ) : reviewsData?.reviews && reviewsData.reviews.length > 0 ? (
-                <div className="space-y-6">
-                  {reviewsData.reviews.map(review => (
-                    <ReviewCard
-                      key={review.id}
-                      review={review}
-                      currentUserId={currentUserId}
-                      onVote={handleVoteOnReview}
-                      onRemoveVote={handleRemoveVote}
-                      onEdit={isLoggedIn && currentUserId === review.user.id ? handleEditReview : undefined}
-                      onDelete={isLoggedIn && currentUserId === review.user.id ? handleDeleteReview : undefined}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="modern-card p-8 text-center">
-                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
-                  <p className="text-gray-600 mb-4">
-                    Be the first to share your thoughts about this book!
-                  </p>
-                  {isLoggedIn && (
+                  ) : (
                     <button
-                      onClick={() => setShowReviewForm(true)}
-                      className="btn-primary"
+                      onClick={handleAddToLibrary}
+                      className="flex items-center justify-center gap-2 w-full bg-gentle-600 text-white px-6 py-3 rounded-lg hover:bg-gentle-700 transition-colors"
                     >
-                      Write the First Review
+                      <Plus className="w-4 h-4" />
+                      Add to Library
                     </button>
                   )}
                 </div>
               )}
             </div>
+
+            {/* Book Info */}
+            <div className="lg:col-span-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">{book.title}</h1>
+              
+              <div className="flex items-center gap-2 text-gray-600 mb-4">
+                <User className="w-4 h-4" />
+                <span>{authors}</span>
+              </div>
+
+              {/* Meta Info */}
+              <div className="flex flex-wrap gap-4 mb-6">
+                {publishedYear !== 'Unknown' && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <span>{publishedYear}</span>
+                  </div>
+                )}
+                
+                {book.pageCount > 0 && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <BookOpen className="w-4 h-4" />
+                    <span>{book.pageCount} pages</span>
+                  </div>
+                )}
+
+                {ratingsCount > 0 && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <span>{ratingsCount.toLocaleString()} ratings</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Categories */}
+              {book.categories && book.categories.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex flex-wrap gap-2">
+                    {book.categories.map((category, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-gentle-100 text-gentle-700 text-sm rounded-full"
+                      >
+                        {category}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {book.description && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                  <p className="text-gray-700 leading-relaxed">{book.description}</p>
+                </div>
+              )}
+
+                             {/* Book Availability */}
+               <BookAvailability 
+                 bookId={book.id}
+                 title={book.title}
+                 author={authors}
+                 isbn={book.industryIdentifiers?.[0]?.identifier}
+               />
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews & Ratings */}
+        <div className="mt-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Reviews & Ratings</h2>
+              {isLoggedIn && (
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="bg-gentle-600 text-white px-4 py-2 rounded-lg hover:bg-gentle-700 transition-colors"
+                >
+                  Write a Review
+                </button>
+              )}
+            </div>
+
+                         {/* Review Stats */}
+             <ReviewStats
+               stats={{
+                 averageRating: rating,
+                 totalReviews: ratingsCount,
+                 ratingDistribution: {
+                   5: Math.floor(ratingsCount * 0.4),
+                   4: Math.floor(ratingsCount * 0.3),
+                   3: Math.floor(ratingsCount * 0.2),
+                   2: Math.floor(ratingsCount * 0.08),
+                   1: Math.floor(ratingsCount * 0.02)
+                 }
+               }}
+             />
+
+             {/* Review Form */}
+             {showReviewForm && (
+               <ReviewForm
+                 bookId={book.id}
+                 onSubmit={async (rating: number, review: string) => {
+                   handleReviewSubmit({ rating, review });
+                 }}
+                 onCancel={() => {
+                   setShowReviewForm(false);
+                   setEditingReview(null);
+                 }}
+                 initialRating={editingReview?.rating || 0}
+                 initialReview={editingReview?.text || ''}
+                 isEditing={!!editingReview}
+               />
+             )}
+
+             {/* Review List */}
+             <div className="mt-8 space-y-4">
+               {/* Mock reviews - in real app these would come from API */}
+               {ratingsCount > 0 && (
+                 <>
+                   <ReviewCard
+                     review={{
+                       id: 1,
+                       userId: 1,
+                       bookId: book.id,
+                       rating: 5,
+                       review: 'Absolutely fantastic book! The writing is beautiful and the story is captivating.',
+                       helpfulVotes: 12,
+                       createdAt: Date.now() - 86400000, // 1 day ago
+                       user: {
+                         id: 1,
+                         name: 'Book Lover'
+                       }
+                     }}
+                     currentUserId={currentUserId}
+                     onVote={async (reviewId: number, isHelpful: boolean) => {
+                       handleReviewVote(reviewId.toString(), isHelpful);
+                     }}
+                     onRemoveVote={async (reviewId: number) => {
+                       // Mock remove vote
+                       console.log('Remove vote:', reviewId);
+                     }}
+                     onEdit={handleReviewEdit}
+                     onDelete={async (reviewId: number) => {
+                       handleReviewDelete(reviewId.toString());
+                     }}
+                   />
+                   <ReviewCard
+                     review={{
+                       id: 2,
+                       userId: 2,
+                       bookId: book.id,
+                       rating: 4,
+                       review: 'Well-written with interesting characters. Highly recommend for anyone interested in this genre.',
+                       helpfulVotes: 8,
+                       createdAt: Date.now() - 172800000, // 2 days ago
+                       user: {
+                         id: 2,
+                         name: 'Literary Critic'
+                       }
+                     }}
+                     currentUserId={currentUserId}
+                     onVote={async (reviewId: number, isHelpful: boolean) => {
+                       handleReviewVote(reviewId.toString(), isHelpful);
+                     }}
+                     onRemoveVote={async (reviewId: number) => {
+                       // Mock remove vote
+                       console.log('Remove vote:', reviewId);
+                     }}
+                     onEdit={handleReviewEdit}
+                     onDelete={async (reviewId: number) => {
+                       handleReviewDelete(reviewId.toString());
+                     }}
+                   />
+                 </>
+               )}
+             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 } 
