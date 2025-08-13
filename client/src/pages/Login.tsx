@@ -16,26 +16,27 @@ export default function Login() {
     setError('')
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed')
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      // Mock login - check against localStorage users
+      const existingUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]')
+      const user = existingUsers.find((u: any) => u.email === email)
+      
+      if (!user) {
+        throw new Error('User not found. Please register first.')
       }
-
-      // Store token in localStorage
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-
+      
+      // For mock purposes, accept any password for registered users
+      // In a real app, you'd verify the password hash
+      
+      // Store current user session
+      localStorage.setItem('currentUser', JSON.stringify(user))
+      localStorage.setItem('isLoggedIn', 'true')
+      
       // Redirect to home page
       navigate('/')
+      
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -101,13 +102,13 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gentle-600 text-white py-3 rounded-xl hover:bg-gentle-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full bg-gentle-600 text-white py-3 rounded-xl hover:bg-gentle-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
             >
               {isLoading ? (
-                <span className="flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <Loader2 className="h-5 w-5 animate-spin mr-2" />
                   Signing In...
-                </span>
+                </div>
               ) : (
                 'Sign In'
               )}
@@ -118,7 +119,7 @@ export default function Login() {
             <p className="text-gray-600">
               Don't have an account?{' '}
               <Link to="/register" className="text-gentle-600 hover:text-gentle-700 font-medium">
-                Sign up here
+                Create one
               </Link>
             </p>
           </div>

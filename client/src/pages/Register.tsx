@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -11,6 +11,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,28 +25,66 @@ export default function Register() {
       return
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed')
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Mock registration - store user data in localStorage
+      const mockUser = {
+        id: Date.now().toString(),
+        name,
+        email,
+        createdAt: new Date().toISOString()
       }
-
-      // Redirect to login page
-      navigate('/login')
+      
+      // Store user data in localStorage (mock database)
+      const existingUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]')
+      const userExists = existingUsers.find((user: any) => user.email === email)
+      
+      if (userExists) {
+        throw new Error('User with this email already exists')
+      }
+      
+      existingUsers.push(mockUser)
+      localStorage.setItem('mockUsers', JSON.stringify(existingUsers))
+      
+      // Store current user session
+      localStorage.setItem('currentUser', JSON.stringify(mockUser))
+      localStorage.setItem('isLoggedIn', 'true')
+      
+      setSuccess(true)
+      
+      // Redirect to home page after a short delay
+      setTimeout(() => {
+        navigate('/')
+      }, 2000)
+      
     } catch (error: any) {
       setError(error.message)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gentle-50 to-white flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gentle-200 text-center">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h1>
+            <p className="text-gray-600 mb-4">Welcome to Book Finder, {name}!</p>
+            <p className="text-sm text-gray-500">Redirecting you to the home page...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -105,7 +144,6 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
                   className="w-full px-4 py-3 pr-12 border-2 border-gentle-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gentle-500 focus:border-gentle-500"
                   placeholder="Enter your password"
                 />
@@ -130,7 +168,6 @@ export default function Register() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  minLength={6}
                   className="w-full px-4 py-3 pr-12 border-2 border-gentle-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gentle-500 focus:border-gentle-500"
                   placeholder="Confirm your password"
                 />
@@ -147,13 +184,13 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gentle-600 text-white py-3 rounded-xl hover:bg-gentle-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full bg-gentle-600 text-white py-3 rounded-xl hover:bg-gentle-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
             >
               {isLoading ? (
-                <span className="flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <Loader2 className="h-5 w-5 animate-spin mr-2" />
                   Creating Account...
-                </span>
+                </div>
               ) : (
                 'Create Account'
               )}
@@ -164,7 +201,7 @@ export default function Register() {
             <p className="text-gray-600">
               Already have an account?{' '}
               <Link to="/login" className="text-gentle-600 hover:text-gentle-700 font-medium">
-                Sign in here
+                Sign in
               </Link>
             </p>
           </div>

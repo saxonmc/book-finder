@@ -5,9 +5,12 @@ import { Search, User, Menu, BookOpen, X } from 'lucide-react'
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const location = useLocation()
-  const isLoggedIn = !!localStorage.getItem('token')
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null')
 
   const handleLogout = () => {
+    localStorage.removeItem('currentUser')
+    localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     window.location.href = '/'
@@ -64,7 +67,7 @@ export default function Header() {
                   }`}
                 >
                   <User className="h-4 w-4" />
-                  Profile
+                  {currentUser?.name || 'Profile'}
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -106,72 +109,74 @@ export default function Header() {
             <nav className="flex flex-col gap-2">
               <Link
                 to="/search"
-                onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   location.pathname === '/search'
                     ? 'text-blue-600 bg-blue-50'
                     : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                 }`}
+                onClick={() => setIsMenuOpen(false)}
               >
                 <Search className="h-4 w-4" />
                 Search
               </Link>
               <Link
                 to="/library"
-                onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   location.pathname === '/library'
                     ? 'text-blue-600 bg-blue-50'
                     : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                 }`}
+                onClick={() => setIsMenuOpen(false)}
               >
                 <BookOpen className="h-4 w-4" />
                 Library
               </Link>
-              
+            </nav>
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
               {isLoggedIn ? (
-                <>
+                <div className="flex flex-col gap-2">
                   <Link
                     to="/profile"
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                       location.pathname === '/profile'
                         ? 'text-blue-600 bg-blue-50'
                         : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                     }`}
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
-                    Profile
+                    {currentUser?.name || 'Profile'}
                   </Link>
                   <button
                     onClick={() => {
                       handleLogout()
                       setIsMenuOpen(false)
                     }}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg font-medium transition-all duration-200 text-left w-full"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg font-medium transition-all duration-200"
                   >
                     Logout
                   </button>
-                </>
+                </div>
               ) : (
-                <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
+                <div className="flex flex-col gap-2">
                   <Link
                     to="/login"
+                    className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-all duration-200"
                     onClick={() => setIsMenuOpen(false)}
-                    className="px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-all duration-200"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
+                    className="btn-primary"
                     onClick={() => setIsMenuOpen(false)}
-                    className="btn-primary text-center"
                   >
                     Sign Up
                   </Link>
                 </div>
               )}
-            </nav>
+            </div>
           </div>
         )}
       </div>
