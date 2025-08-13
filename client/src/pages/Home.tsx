@@ -78,7 +78,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-semibold mb-3 text-gray-900">Detailed Information</h3>
             <p className="text-gray-600 leading-relaxed">
-              Get comprehensive book details including ratings, reviews, publication information, and availability.
+              Get comprehensive book details including ratings, publication information, and availability.
             </p>
           </div>
           
