@@ -128,18 +128,13 @@ const mockBooks: Book[] = [
 
 // Search books with mock data
 export const useSearchBooks = (query: string, filters?: any, enabled: boolean = true) => {
-  console.log('useSearchBooks called:', { query, filters, enabled })
-  
   return useQuery<SearchResponse>({
     queryKey: ['books', 'search', query, filters],
     queryFn: async () => {
-      console.log('useSearchBooks queryFn executing with:', { query, filters })
-      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500))
       
       if (!query.trim()) {
-        console.log('Empty query, returning empty results')
         return { books: [], total: 0 }
       }
       
@@ -153,8 +148,6 @@ export const useSearchBooks = (query: string, filters?: any, enabled: boolean = 
           book.description?.toLowerCase().includes(searchLower)
         )
       })
-      
-      console.log('Initial filtered books:', filteredBooks.length)
       
       // Apply additional filters if provided
       if (filters) {
@@ -193,8 +186,6 @@ export const useSearchBooks = (query: string, filters?: any, enabled: boolean = 
         }
       }
       
-      console.log('After filters:', filteredBooks.length)
-      
       // Sort books
       if (filters?.orderBy === 'relevance') {
         // Sort by how well the book matches the query
@@ -214,8 +205,6 @@ export const useSearchBooks = (query: string, filters?: any, enabled: boolean = 
       // Limit results
       const maxResults = filters?.maxResults || 20
       const limitedBooks = filteredBooks.slice(0, maxResults)
-      
-      console.log('Final results:', { books: limitedBooks.length, total: filteredBooks.length })
       
       return {
         books: limitedBooks,
