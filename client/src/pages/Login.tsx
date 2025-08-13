@@ -21,7 +21,10 @@ export default function Login() {
       
       // Mock login - check against localStorage users
       const existingUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]')
+      console.log('Existing users:', existingUsers)
+      
       const user = existingUsers.find((u: any) => u.email === email)
+      console.log('Found user:', user)
       
       if (!user) {
         throw new Error('User not found. Please register first.')
@@ -33,6 +36,10 @@ export default function Login() {
       // Store current user session
       localStorage.setItem('currentUser', JSON.stringify(user))
       localStorage.setItem('isLoggedIn', 'true')
+      
+      console.log('Login successful for:', user.email)
+      console.log('Current user stored:', localStorage.getItem('currentUser'))
+      console.log('Login status:', localStorage.getItem('isLoggedIn'))
       
       // Redirect to home page
       navigate('/')

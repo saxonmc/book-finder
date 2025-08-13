@@ -45,6 +45,8 @@ export default function Register() {
       
       // Store user data in localStorage (mock database)
       const existingUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]')
+      console.log('Existing users before registration:', existingUsers)
+      
       const userExists = existingUsers.find((user: any) => user.email === email)
       
       if (userExists) {
@@ -57,6 +59,11 @@ export default function Register() {
       // Store current user session
       localStorage.setItem('currentUser', JSON.stringify(mockUser))
       localStorage.setItem('isLoggedIn', 'true')
+      
+      console.log('Registration successful for:', mockUser.email)
+      console.log('All users after registration:', JSON.parse(localStorage.getItem('mockUsers') || '[]'))
+      console.log('Current user stored:', localStorage.getItem('currentUser'))
+      console.log('Login status:', localStorage.getItem('isLoggedIn'))
       
       setSuccess(true)
       

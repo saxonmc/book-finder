@@ -7,12 +7,18 @@ export default function Header() {
   const location = useLocation()
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null')
+  
+  // Debug authentication state
+  console.log('Header - isLoggedIn:', isLoggedIn)
+  console.log('Header - currentUser:', currentUser)
 
   const handleLogout = () => {
+    console.log('Logging out user:', currentUser?.email)
     localStorage.removeItem('currentUser')
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    console.log('Logout complete - localStorage cleared')
     window.location.href = '/'
   }
 

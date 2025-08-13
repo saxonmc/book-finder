@@ -147,6 +147,7 @@ export default function Profile() {
 
       // Load memberships from localStorage
       const storedMemberships = JSON.parse(localStorage.getItem('userMemberships') || '[]')
+      console.log('Profile - Loaded memberships:', storedMemberships)
       setMemberships(storedMemberships)
     } catch (error) {
       console.error('Error loading memberships:', error)
@@ -184,6 +185,8 @@ export default function Profile() {
 
       const updatedMemberships = [...existingMemberships, ...newMemberships]
       localStorage.setItem('userMemberships', JSON.stringify(updatedMemberships))
+      console.log('Profile - Added memberships:', newMemberships)
+      console.log('Profile - All memberships after adding:', updatedMemberships)
       setMemberships(updatedMemberships)
 
       setShowMembershipDropdown(false)

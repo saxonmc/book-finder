@@ -32,6 +32,7 @@ export default function Library() {
 
       // Load books from localStorage
       const storedBooks = JSON.parse(localStorage.getItem('userLibrary') || '[]')
+      console.log('Library - Loaded books:', storedBooks)
       setBooks(storedBooks)
     } catch (error) {
       console.error('Error loading library:', error)
