@@ -3,19 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Star, Calendar, BookOpen, User, Plus, Check } from 'lucide-react';
 import { useBook } from '@/hooks/useBooks';
 import BookAvailability from '@/components/BookAvailability';
-import ReviewForm from '@/components/ReviewForm';
-import ReviewCard from '@/components/ReviewCard';
-import ReviewStats from '@/components/ReviewStats';
 
 export default function BookDetails() {
   const { id } = useParams<{ id: string }>();
   const { data: book, isLoading, error } = useBook(id || '');
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [editingReview, setEditingReview] = useState<any>(null);
 
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  const currentUserId = currentUser?.id;
 
   // Mock library status check
   const checkLibraryStatus = () => {
@@ -57,28 +50,6 @@ export default function BookDetails() {
     }
   };
 
-  const handleReviewSubmit = (reviewData: any) => {
-    // Mock review submission
-    console.log('Review submitted:', reviewData);
-    setShowReviewForm(false);
-    setEditingReview(null);
-  };
-
-  const handleReviewEdit = (review: any) => {
-    setEditingReview(review);
-    setShowReviewForm(true);
-  };
-
-  const handleReviewDelete = (reviewId: string) => {
-    // Mock review deletion
-    console.log('Review deleted:', reviewId);
-  };
-
-  const handleReviewVote = (reviewId: string, isHelpful: boolean) => {
-    // Mock review voting
-    console.log('Review voted:', reviewId, isHelpful);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen gradient-bg-gentle flex items-center justify-center">
@@ -107,8 +78,6 @@ export default function BookDetails() {
   const coverImage = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail || 'https://via.placeholder.com/300x450?text=No+Image';
   const authors = book.authors?.join(', ') || 'Unknown Author';
   const publishedYear = book.publishedDate ? new Date(book.publishedDate).getFullYear() : 'Unknown';
-  const rating = book.averageRating || 0;
-  const ratingsCount = book.ratingsCount || 0;
 
   return (
     <div className="min-h-screen gradient-bg-gentle">
@@ -137,10 +106,10 @@ export default function BookDetails() {
                     target.src = 'https://via.placeholder.com/300x450?text=No+Image';
                   }}
                 />
-                {rating > 0 && (
+                {book.averageRating > 0 && (
                   <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    {rating.toFixed(1)}
+                    {book.averageRating.toFixed(1)}
                   </div>
                 )}
               </div>
@@ -191,10 +160,10 @@ export default function BookDetails() {
                   </div>
                 )}
 
-                {ratingsCount > 0 && (
+                {book.ratingsCount > 0 && (
                   <div className="flex items-center gap-2 text-gray-600">
                     <Star className="w-4 h-4 text-yellow-500" />
-                    <span>{ratingsCount.toLocaleString()} ratings</span>
+                    <span>{book.ratingsCount.toLocaleString()} ratings</span>
                   </div>
                 )}
               </div>
@@ -234,117 +203,7 @@ export default function BookDetails() {
           </div>
         </div>
 
-        {/* Reviews & Ratings */}
-        <div className="mt-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Reviews & Ratings</h2>
-              {isLoggedIn && (
-                <button
-                  onClick={() => setShowReviewForm(true)}
-                  className="bg-gentle-600 text-white px-4 py-2 rounded-lg hover:bg-gentle-700 transition-colors"
-                >
-                  Write a Review
-                </button>
-              )}
-            </div>
 
-                         {/* Review Stats */}
-             <ReviewStats
-               stats={{
-                 averageRating: rating,
-                 totalReviews: ratingsCount,
-                 ratingDistribution: {
-                   5: Math.floor(ratingsCount * 0.4),
-                   4: Math.floor(ratingsCount * 0.3),
-                   3: Math.floor(ratingsCount * 0.2),
-                   2: Math.floor(ratingsCount * 0.08),
-                   1: Math.floor(ratingsCount * 0.02)
-                 }
-               }}
-             />
-
-             {/* Review Form */}
-             {showReviewForm && (
-               <ReviewForm
-                 bookId={book.id}
-                 onSubmit={async (rating: number, review: string) => {
-                   handleReviewSubmit({ rating, review });
-                 }}
-                 onCancel={() => {
-                   setShowReviewForm(false);
-                   setEditingReview(null);
-                 }}
-                 initialRating={editingReview?.rating || 0}
-                 initialReview={editingReview?.text || ''}
-                 isEditing={!!editingReview}
-               />
-             )}
-
-             {/* Review List */}
-             <div className="mt-8 space-y-4">
-               {/* Mock reviews - in real app these would come from API */}
-               {ratingsCount > 0 && (
-                 <>
-                   <ReviewCard
-                     review={{
-                       id: 1,
-                       userId: 1,
-                       bookId: book.id,
-                       rating: 5,
-                       review: 'Absolutely fantastic book! The writing is beautiful and the story is captivating.',
-                       helpfulVotes: 12,
-                       createdAt: Date.now() - 86400000, // 1 day ago
-                       user: {
-                         id: 1,
-                         name: 'Book Lover'
-                       }
-                     }}
-                     currentUserId={currentUserId}
-                     onVote={async (reviewId: number, isHelpful: boolean) => {
-                       handleReviewVote(reviewId.toString(), isHelpful);
-                     }}
-                     onRemoveVote={async (reviewId: number) => {
-                       // Mock remove vote
-                       console.log('Remove vote:', reviewId);
-                     }}
-                     onEdit={handleReviewEdit}
-                     onDelete={async (reviewId: number) => {
-                       handleReviewDelete(reviewId.toString());
-                     }}
-                   />
-                   <ReviewCard
-                     review={{
-                       id: 2,
-                       userId: 2,
-                       bookId: book.id,
-                       rating: 4,
-                       review: 'Well-written with interesting characters. Highly recommend for anyone interested in this genre.',
-                       helpfulVotes: 8,
-                       createdAt: Date.now() - 172800000, // 2 days ago
-                       user: {
-                         id: 2,
-                         name: 'Literary Critic'
-                       }
-                     }}
-                     currentUserId={currentUserId}
-                     onVote={async (reviewId: number, isHelpful: boolean) => {
-                       handleReviewVote(reviewId.toString(), isHelpful);
-                     }}
-                     onRemoveVote={async (reviewId: number) => {
-                       // Mock remove vote
-                       console.log('Remove vote:', reviewId);
-                     }}
-                     onEdit={handleReviewEdit}
-                     onDelete={async (reviewId: number) => {
-                       handleReviewDelete(reviewId.toString());
-                     }}
-                   />
-                 </>
-               )}
-             </div>
-          </div>
-        </div>
       </div>
     </div>
   );
